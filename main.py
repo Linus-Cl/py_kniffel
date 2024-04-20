@@ -21,7 +21,6 @@ dice_board_saved = pygame.Rect(
     (width / 2) + 100, 150 + ((height - 200) / 2), (width - 300) / 2, (height - 200) / 2
 )
 btn_roll_dice = pygame.Rect((width / 2) + 100, 50, 150, 75)
-dice_states = []
 
 
 def draw_button(format, hover):
@@ -92,9 +91,12 @@ while running:
             if btn_roll_dice.collidepoint(x, y):
                 roll_dice()
                 positions = get_random_dice_positions()
-                print(positions)
                 for d, coords in zip(dice_list, positions):
                     d.change_position(coords[0], coords[1])
+
+            for d in dice_list:
+                if d.rect.collidepoint(x, y):
+                    d.frozen = not d.frozen
 
     pygame.display.flip()
     dt = clock.tick(60) / 1000
