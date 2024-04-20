@@ -1,5 +1,6 @@
 import pygame
 import random
+import dice
 
 # pygame setup
 pygame.init()
@@ -11,21 +12,8 @@ running = True
 dt = 0
 font = pygame.font.SysFont("Sans", 20)
 
-dice_img_one = pygame.image.load("images/dice_one.png")
-dice_img_two = pygame.image.load("images/dice_two.png")
-dice_img_three = pygame.image.load("images/dice_three.png")
-dice_img_four = pygame.image.load("images/dice_four.png")
-dice_img_five = pygame.image.load("images/dice_five.png")
-dice_img_six = pygame.image.load("images/dice_six.png")
+dice_list = [dice.Dice(i, 0, 0) for i in range(5)]
 
-dice_images = [
-    (dice_img_one, 1),
-    (dice_img_two, 2),
-    (dice_img_three, 3),
-    (dice_img_four, 4),
-    (dice_img_five, 5),
-    (dice_img_six, 6),
-]
 
 table_board = pygame.Rect(50, 50, (width / 2) + 50 / 2, height - 100)
 dice_board = pygame.Rect((width / 2) + 100, 150, (width - 300) / 2, (height - 200) / 2)
@@ -33,7 +21,6 @@ dice_board_saved = pygame.Rect(
     (width / 2) + 100, 150 + ((height - 200) / 2), (width - 300) / 2, (height - 200) / 2
 )
 btn_roll_dice = pygame.Rect((width / 2) + 100, 50, 150, 75)
-dice = []
 dice_states = []
 
 
@@ -72,23 +59,14 @@ def get_random_dice_positions(num_dice=5):
 
 
 def roll_dice():
-    states = []
-    for _ in dice:
-        num = random.randint(1, 6)
-        img = dice_img_one
-        for pair in dice_images:
-            if pair[1] == num:
-                img = pair[0]
-
-        states.append(img)
-
-    return states
+    for d in dice_list:
+        d.roll()
 
 
 def draw_dice():
-    for d, img in zip(dice, dice_states):
-        pygame.draw.rect(screen, "red", d)
-        screen.blit(img, d)
+    for d in dice_list:
+        pygame.draw.rect(screen, "gray25", d.rect)
+        screen.blit(d.image, d.rect)
 
 
 while running:
@@ -112,9 +90,11 @@ while running:
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if btn_roll_dice.collidepoint(x, y):
+                roll_dice()
                 positions = get_random_dice_positions()
-                dice = [pygame.Rect(pos[0], pos[1], 40, 40) for pos in positions]
-                dice_states = roll_dice()
+                print(positions)
+                for d, coords in zip(dice_list, positions):
+                    d.change_position(coords[0], coords[1])
 
     pygame.display.flip()
     dt = clock.tick(60) / 1000
