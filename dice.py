@@ -43,3 +43,8 @@ class Dice:
             for pair in dice_images:
                 if pair[1] == self.value:
                     self.image = pair[0]
+
+    def freeze(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
+        self.frozen = True

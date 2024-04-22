@@ -20,6 +20,14 @@ dice_board = pygame.Rect((width / 2) + 100, 150, (width - 300) / 2, (height - 20
 dice_board_saved = pygame.Rect(
     (width / 2) + 100, 150 + ((height - 200) / 2), (width - 300) / 2, (height - 200) / 2
 )
+saved_dice_positions = [
+    [dice_board_saved.left + 155, dice_board_saved.top + 105, False],
+    [dice_board_saved.left + 225, dice_board_saved.top + 105, False],
+    [dice_board_saved.left + 295, dice_board_saved.top + 105, False],
+    [dice_board_saved.left + 190, dice_board_saved.top + 245, False],
+    [dice_board_saved.left + 270, dice_board_saved.top + 245, False],
+]
+
 btn_roll_dice = pygame.Rect((width / 2) + 100, 50, 150, 75)
 
 
@@ -57,6 +65,13 @@ def get_random_dice_positions(num_dice=5):
         positions.append(coords)
 
     return positions
+
+
+def get_free_freeze_position():
+    for pos in saved_dice_positions:
+        if not pos[2]:
+            pos[2] = True
+            return (pos[0], pos[1])
 
 
 def roll_dice():
@@ -98,7 +113,15 @@ while running:
 
             for d in dice_list:
                 if d.rect.collidepoint(x, y):
-                    d.frozen = not d.frozen
+                    if not d.frozen:
+                        freeze_pos = get_free_freeze_position()
+                        d.freeze(*freeze_pos)
+                    elif d.frozen:
+                        d.frozen = False
+                        for pos in saved_dice_positions:
+                            if pos[0] == d.rect.x and pos[1] == d.rect.y:
+                                pos[2] = False
+                        d.change_position(d.x, d.y)
 
     pygame.display.flip()
     dt = clock.tick(60) / 1000
