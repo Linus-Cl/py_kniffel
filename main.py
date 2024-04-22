@@ -1,6 +1,8 @@
 import pygame
 import random
 import dice
+import Player
+from Button import Button
 
 # pygame setup
 pygame.init()
@@ -25,20 +27,25 @@ saved_dice_positions = [
     [dice_board_saved.left + 190, dice_board_saved.top + 245, False],
     [dice_board_saved.left + 270, dice_board_saved.top + 245, False],
 ]
-btn_roll_dice = pygame.Rect((width / 2) + 100, 50, 150, 75)
+btn_roll_dice = Button(
+    pygame.Rect((width / 2) + 100, 50, 150, 75), "Roll Dice", "skyblue3", "skyblue2"
+)
+btn_finish_turn = Button(
+    pygame.Rect((width / 2) + 275, 50, 150, 75), "Finish Turn", "skyblue3", "skyblue2"
+)
 
 
-def draw_button(format, hover):
-    if hover:
-        pygame.draw.rect(screen, "skyblue2", format)
-        text = font.render("Roll Dice", True, "white")
-        text_rec = text.get_rect(center=(format.center))
-        screen.blit(text, text_rec)
-    else:
-        pygame.draw.rect(screen, "skyblue3", format)
-        text = font.render("Roll Dice", True, "white")
-        text_rec = text.get_rect(center=(format.center))
-        screen.blit(text, text_rec)
+def draw_button(button: Button):
+    color = button.color
+    if button.hover:
+        color = button.hover_color
+    if button.disabled:
+        color = button.disabled_color
+
+    pygame.draw.rect(screen, color, button.rect)
+    text = font.render(button.text, True, "white")
+    text_rec = text.get_rect(center=(button.rect.center))
+    screen.blit(text, text_rec)
 
 
 # returns 5 positions that do not interfere
@@ -83,9 +90,48 @@ def draw_dice():
         screen.blit(d.image, d.rect)
 
 
+def start_screen(screen):
+    text = font.render("Select number of players: 1, 2, or 3", True, "white")
+    text_rect = text.get_rect(
+        center=(screen.get_width() // 2, screen.get_height() // 2)
+    )
+    screen.blit(text, text_rect)
+    pygame.display.flip()
+
+    num_players = None
+    while num_players is None:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    num_players = 1
+                elif event.key == pygame.K_2:
+                    num_players = 2
+                elif event.key == pygame.K_3:
+                    num_players = 3
+    return num_players
+
+
+num_players = start_screen(screen)
+players = [Player.Player(i) for i in range(num_players)]
+current_player = players[0]
+switch_player_flag = False
+attempt_counter = 3
+
+
 # game loop
 while running:
 
+    if switch_player_flag:
+        current_player = players[(current_player.id + 1) % len(players)]
+        switch_player_flag = False
+        attempt_counter = 3
+        print(current_player.id)
+        btn_roll_dice.disabled = False
+
+    btn_roll_dice.hover = False
+    btn_finish_turn.hover = False
     x, y = pygame.mouse.get_pos()
     screen.fill("gray25")
 
@@ -95,9 +141,13 @@ while running:
 
     draw_dice()
 
-    draw_button(btn_roll_dice, hover=False)
-    if btn_roll_dice.collidepoint(x, y):
-        draw_button(btn_roll_dice, hover=True)
+    if btn_roll_dice.rect.collidepoint(x, y):
+        btn_roll_dice.hover = True
+    draw_button(btn_roll_dice)
+
+    if btn_finish_turn.rect.collidepoint(x, y):
+        btn_finish_turn.hover = True
+    draw_button(btn_finish_turn)
 
     # event loop
     for event in pygame.event.get():
@@ -105,11 +155,25 @@ while running:
             running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if btn_roll_dice.collidepoint(x, y):
-                roll_dice()
-                positions = get_random_dice_positions()
-                for d, coords in zip(dice_list, positions):
-                    d.change_position(coords[0], coords[1])
+            if btn_roll_dice.rect.collidepoint(x, y):
+                if attempt_counter > 1:
+                    roll_dice()
+                    attempt_counter -= 1
+                    positions = get_random_dice_positions()
+                    for d, coords in zip(dice_list, positions):
+                        d.change_position(coords[0], coords[1])
+                elif attempt_counter == 1:
+                    roll_dice()
+                    attempt_counter -= 1
+                    positions = get_random_dice_positions()
+                    for d, coords in zip(dice_list, positions):
+                        d.change_position(coords[0], coords[1])
+                    btn_roll_dice.disabled = True
+
+            if btn_finish_turn.rect.collidepoint(x, y):
+                switch_player_flag = True
+                for d in dice_list:
+                    d.reset()
 
             for d in dice_list:
                 if d.rect.collidepoint(x, y):

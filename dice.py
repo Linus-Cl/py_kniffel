@@ -48,3 +48,12 @@ class Dice:
         self.rect.x = x
         self.rect.y = y
         self.frozen = True
+
+    def reset(self):
+        self.x = 0
+        self.y = 0
+        self.rect.x = 0
+        self.rect.y = 0
+        self.image = dice_empty
+        self.value = 0
+        self.frozen = False
