@@ -13,8 +13,6 @@ dt = 0
 font = pygame.font.SysFont("Sans", 20)
 
 dice_list = [dice.Dice(i, 0, 0) for i in range(5)]
-
-
 table_board = pygame.Rect(50, 50, (width / 2) + 50 / 2, height - 100)
 dice_board = pygame.Rect((width / 2) + 100, 150, (width - 300) / 2, (height - 200) / 2)
 dice_board_saved = pygame.Rect(
@@ -27,7 +25,6 @@ saved_dice_positions = [
     [dice_board_saved.left + 190, dice_board_saved.top + 245, False],
     [dice_board_saved.left + 270, dice_board_saved.top + 245, False],
 ]
-
 btn_roll_dice = pygame.Rect((width / 2) + 100, 50, 150, 75)
 
 
@@ -44,6 +41,7 @@ def draw_button(format, hover):
         screen.blit(text, text_rec)
 
 
+# returns 5 positions that do not interfere
 def get_random_dice_positions(num_dice=5):
     frozen_positions = [(d.x, d.y) for d in dice_list if d.frozen]
     positions = []
@@ -85,6 +83,7 @@ def draw_dice():
         screen.blit(d.image, d.rect)
 
 
+# game loop
 while running:
 
     x, y = pygame.mouse.get_pos()
@@ -100,6 +99,7 @@ while running:
     if btn_roll_dice.collidepoint(x, y):
         draw_button(btn_roll_dice, hover=True)
 
+    # event loop
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
