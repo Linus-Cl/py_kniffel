@@ -37,6 +37,7 @@ def draw_button(format, hover):
 
 
 def get_random_dice_positions(num_dice=5):
+    frozen_positions = [(d.x, d.y) for d in dice_list if d.frozen]
     positions = []
 
     for _ in range(num_dice):
@@ -47,11 +48,12 @@ def get_random_dice_positions(num_dice=5):
                 random.randint(dice_board.top + 50, dice_board.bottom - 50),
             )
             to_close = False
-            for item in positions:
+            for item in frozen_positions:
                 if (item[0] - 45 < coords[0] < item[0] + 45) and (
                     item[1] - 45 < coords[1] < item[1] + 45
                 ):
                     to_close = True
+        frozen_positions.append(coords)
         positions.append(coords)
 
     return positions
