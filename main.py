@@ -33,6 +33,8 @@ btn_roll_dice = Button(
 btn_finish_turn = Button(
     pygame.Rect((width / 2) + 275, 50, 150, 75), "Finish Turn", "skyblue3", "skyblue2"
 )
+list_background = pygame.Rect(100, 90, 400, 722)
+list_buttons = [pygame.Rect(102, 90 + i * 40 + 2, 100, 38) for i in range(18)]
 
 
 def draw_button(button: Button):
@@ -138,6 +140,10 @@ while running:
     pygame.draw.rect(screen, "skyblue3", table_board)
     pygame.draw.rect(screen, "skyblue3", dice_board)
     pygame.draw.rect(screen, "skyblue2", dice_board_saved)
+    pygame.draw.rect(screen, "red", list_background)
+    for list_btn in list_buttons:
+        pygame.draw.rect(screen, "skyblue2", list_btn)
+    # pygame.draw.rect(screen, "red", list_btn, 2)
 
     draw_dice()
 
