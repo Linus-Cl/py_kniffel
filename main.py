@@ -12,7 +12,8 @@ height = screen.get_height()
 clock = pygame.time.Clock()
 running = True
 dt = 0
-font = pygame.font.SysFont("Sans", 20)
+main_font = pygame.font.SysFont("Sans", 20)
+list_font = pygame.font.SysFont("Sans", 16)
 
 dice_list = [dice.Dice(i, 0, 0) for i in range(5)]
 table_board = pygame.Rect(50, 50, (width / 2) + 50 / 2, height - 100)
@@ -28,13 +29,82 @@ saved_dice_positions = [
     [dice_board_saved.left + 270, dice_board_saved.top + 245, False],
 ]
 btn_roll_dice = Button(
-    pygame.Rect((width / 2) + 100, 50, 150, 75), "Roll Dice", "skyblue3", "skyblue2"
+    pygame.Rect((width / 2) + 100, 50, 150, 75),
+    "Roll Dice",
+    "skyblue3",
+    "skyblue2",
+    main_font,
 )
 btn_finish_turn = Button(
-    pygame.Rect((width / 2) + 275, 50, 150, 75), "Finish Turn", "skyblue3", "skyblue2"
+    pygame.Rect((width / 2) + 275, 50, 150, 75),
+    "Finish Turn",
+    "skyblue3",
+    "skyblue2",
+    main_font,
 )
-list_background = pygame.Rect(100, 90, 400, 722)
-list_buttons = [pygame.Rect(102, 90 + i * 40 + 2, 100, 38) for i in range(18)]
+
+list_button_texts = [
+    "1er",
+    "2er",
+    "3er",
+    "4er",
+    "5er",
+    "6er",
+    "Gesamt",
+    "Bonus?",
+    "Dreierpasch",
+    "Viererpasch",
+    "Full House",
+    "Kleine Straße",
+    "Große Straße",
+    "Kniffel",
+    "Chance",
+    "gesamt unten",
+    "gesamt oben",
+    "gesamt",
+]
+list_background = pygame.Rect(106, 110, 514, 728)
+list_buttons2 = [
+    Button(
+        pygame.Rect(108, 110 + i * 40 + 2, 100, 38),
+        text,
+        "skyblue1",
+        "skyblue3",
+        list_font,
+    )
+    for i, text in zip(range(18), list_button_texts)
+]
+
+list_buttons = []
+list_col_1 = []
+list_col_2 = []
+list_col_3 = []
+list_col_4 = []
+cols = [list_buttons, list_col_1, list_col_2, list_col_3, list_col_4]
+left_values_list = [108, 212, 314, 416, 518]
+
+for i, text in zip(range(18), list_button_texts):
+    for list, left_val in zip(cols, left_values_list):
+        if i < 8:
+            list.append(
+                Button(
+                    pygame.Rect(left_val, 110 + i * 40 + 2, 100, 38),
+                    text,
+                    "skyblue1",
+                    "skyblue3",
+                    list_font,
+                )
+            )
+        else:
+            list.append(
+                Button(
+                    pygame.Rect(left_val, 110 + i * 40 + 8, 100, 38),
+                    text,
+                    "skyblue1",
+                    "skyblue3",
+                    list_font,
+                )
+            )
 
 
 def draw_button(button: Button):
@@ -45,7 +115,7 @@ def draw_button(button: Button):
         color = button.disabled_color
 
     pygame.draw.rect(screen, color, button.rect)
-    text = font.render(button.text, True, "white")
+    text = button.font.render(button.text, True, "white")
     text_rec = text.get_rect(center=(button.rect.center))
     screen.blit(text, text_rec)
 
@@ -93,7 +163,7 @@ def draw_dice():
 
 
 def start_screen(screen):
-    text = font.render("Select number of players: 1, 2, or 3", True, "white")
+    text = main_font.render("Select number of players: 1, 2, or 3", True, "white")
     text_rect = text.get_rect(
         center=(screen.get_width() // 2, screen.get_height() // 2)
     )
@@ -140,12 +210,22 @@ while running:
     pygame.draw.rect(screen, "skyblue3", table_board)
     pygame.draw.rect(screen, "skyblue3", dice_board)
     pygame.draw.rect(screen, "skyblue2", dice_board_saved)
-    pygame.draw.rect(screen, "red", list_background)
-    for list_btn in list_buttons:
-        pygame.draw.rect(screen, "skyblue2", list_btn)
-    # pygame.draw.rect(screen, "red", list_btn, 2)
+    pygame.draw.rect(screen, "white", list_background)
+
+    for col1, col2, col3, col4 in zip(list_col_1, list_col_2, list_col_3, list_col_4):
+        # draw_button(list_btn)
+        pygame.draw.rect(screen, "skyblue1", col1)
+        pygame.draw.rect(screen, "skyblue1", col2)
+        pygame.draw.rect(screen, "skyblue1", col3)
+        pygame.draw.rect(screen, "skyblue1", col4)
 
     draw_dice()
+
+    for list_btn in list_buttons:
+        list_btn.hover = False
+        if list_btn.rect.collidepoint(x, y):
+            list_btn.hover = True
+        draw_button(list_btn)
 
     if btn_roll_dice.rect.collidepoint(x, y):
         btn_roll_dice.hover = True
