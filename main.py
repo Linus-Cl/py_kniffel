@@ -63,8 +63,8 @@ list_button_texts = [
     "gesamt oben",
     "gesamt",
 ]
-list_background = pygame.Rect(106, 110, 514, 722)
-list_buttons = [
+list_background = pygame.Rect(106, 110, 514, 728)
+list_buttons2 = [
     Button(
         pygame.Rect(108, 110 + i * 40 + 2, 100, 38),
         text,
@@ -74,10 +74,37 @@ list_buttons = [
     )
     for i, text in zip(range(18), list_button_texts)
 ]
-list_col_1 = [pygame.Rect(212, 110 + i * 40 + 2, 100, 38) for i in range(18)]
-list_col_2 = [pygame.Rect(314, 110 + i * 40 + 2, 100, 38) for i in range(18)]
-list_col_3 = [pygame.Rect(416, 110 + i * 40 + 2, 100, 38) for i in range(18)]
-list_col_4 = [pygame.Rect(518, 110 + i * 40 + 2, 100, 38) for i in range(18)]
+
+list_buttons = []
+list_col_1 = []
+list_col_2 = []
+list_col_3 = []
+list_col_4 = []
+cols = [list_buttons, list_col_1, list_col_2, list_col_3, list_col_4]
+left_values_list = [108, 212, 314, 416, 518]
+
+for i, text in zip(range(18), list_button_texts):
+    for list, left_val in zip(cols, left_values_list):
+        if i < 8:
+            list.append(
+                Button(
+                    pygame.Rect(left_val, 110 + i * 40 + 2, 100, 38),
+                    text,
+                    "skyblue1",
+                    "skyblue3",
+                    list_font,
+                )
+            )
+        else:
+            list.append(
+                Button(
+                    pygame.Rect(left_val, 110 + i * 40 + 8, 100, 38),
+                    text,
+                    "skyblue1",
+                    "skyblue3",
+                    list_font,
+                )
+            )
 
 
 def draw_button(button: Button):
@@ -185,15 +212,12 @@ while running:
     pygame.draw.rect(screen, "skyblue2", dice_board_saved)
     pygame.draw.rect(screen, "white", list_background)
 
-    for list_btn, col1, col2, col3, col4 in zip(
-        list_buttons, list_col_1, list_col_2, list_col_3, list_col_4
-    ):
+    for col1, col2, col3, col4 in zip(list_col_1, list_col_2, list_col_3, list_col_4):
         # draw_button(list_btn)
         pygame.draw.rect(screen, "skyblue1", col1)
         pygame.draw.rect(screen, "skyblue1", col2)
         pygame.draw.rect(screen, "skyblue1", col3)
         pygame.draw.rect(screen, "skyblue1", col4)
-    # pygame.draw.rect(screen, "red", list_btn, 2)
 
     draw_dice()
 
