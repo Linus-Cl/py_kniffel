@@ -59,52 +59,26 @@ list_button_texts = [
     "Große Straße",
     "Kniffel",
     "Chance",
-    "gesamt unten",
-    "gesamt oben",
-    "gesamt",
+    "Gesamt Unten",
+    "Gesamt Oben",
+    "Gesamt",
 ]
 list_background = pygame.Rect(106, 110, 514, 728)
-list_buttons2 = [
-    Button(
-        pygame.Rect(108, 110 + i * 40 + 2, 100, 38),
-        text,
-        "skyblue1",
-        "skyblue3",
-        list_font,
-    )
-    for i, text in zip(range(18), list_button_texts)
-]
 
-list_buttons = []
-list_col_1 = []
-list_col_2 = []
-list_col_3 = []
-list_col_4 = []
-cols = [list_buttons, list_col_1, list_col_2, list_col_3, list_col_4]
+cols = [[] for i in range(5)]
 left_values_list = [108, 212, 314, 416, 518]
 
-for i, text in zip(range(18), list_button_texts):
+for i, text in enumerate(list_button_texts):
     for list, left_val in zip(cols, left_values_list):
-        if i < 8:
-            list.append(
-                Button(
-                    pygame.Rect(left_val, 110 + i * 40 + 2, 100, 38),
-                    text,
-                    "skyblue1",
-                    "skyblue3",
-                    list_font,
-                )
+        list.append(
+            Button(
+                pygame.Rect(left_val, 110 + i * 40 + (2 if i < 8 else 8), 100, 38),
+                text,
+                "skyblue1",
+                "skyblue3",
+                list_font,
             )
-        else:
-            list.append(
-                Button(
-                    pygame.Rect(left_val, 110 + i * 40 + 8, 100, 38),
-                    text,
-                    "skyblue1",
-                    "skyblue3",
-                    list_font,
-                )
-            )
+        )
 
 
 def draw_button(button: Button):
@@ -185,6 +159,88 @@ def start_screen(screen):
     return num_players
 
 
+def count_appearances(lst):
+    counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+    for item in lst:
+        counts[item] += 1
+    return counts
+
+
+def eval_points():
+    used_dice = [d for d in dice_list if d.frozen]
+    dice_values = [d.value for d in used_dice]
+    value_counts = count_appearances(dice_values)
+    possible_values = [0 for _ in range(18)]
+    for i in range(6):
+        possible_values[i] = value_counts[i + 1] * (i + 1)
+
+    max_count_item = max(value_counts, key=value_counts.get)
+
+    # dreierpasch
+    if value_counts[max_count_item] >= 3:
+        val = 0
+        for item in value_counts.items():
+            val += item[0] * item[1]
+        possible_values[8] = val
+
+    # viererpasch
+    if value_counts[max_count_item] >= 4:
+        val = 0
+        for item in value_counts.items():
+            val += item[0] * item[1]
+        possible_values[9] = val
+
+    # full-house
+    for item in value_counts.keys():
+        if item != max_count_item and value_counts[item] == 2:
+            possible_values[10] = 25
+
+    # kleine-strasse
+    if (
+        (
+            value_counts[1] >= 1
+            and value_counts[2] >= 1
+            and value_counts[3] >= 1
+            and value_counts[4] >= 1
+        )
+        or (
+            value_counts[2] >= 1
+            and value_counts[3] >= 1
+            and value_counts[4] >= 1
+            and value_counts[5] >= 1
+        )
+        or (
+            value_counts[3] >= 1
+            and value_counts[4] >= 1
+            and value_counts[5] >= 1
+            and value_counts[6] >= 1
+        )
+    ):
+        possible_values[11] = 30
+
+    # grosse-strasse
+    if (
+        value_counts[1] == 1
+        and value_counts[2] == 1
+        and value_counts[3] == 1
+        and value_counts[4] == 1
+        and value_counts[5] == 1
+    ) or (
+        value_counts[2] == 1
+        and value_counts[3] == 1
+        and value_counts[4] == 1
+        and value_counts[5] == 1
+        and value_counts[6] == 1
+    ):
+        possible_values[12] = 40
+
+    # kniffel
+    if value_counts[max_count_item] == 5:
+        possible_values[13] = 50
+
+    print(possible_values)
+
+
 num_players = start_screen(screen)
 players = [Player.Player(i) for i in range(num_players)]
 current_player = players[0]
@@ -212,16 +268,13 @@ while running:
     pygame.draw.rect(screen, "skyblue2", dice_board_saved)
     pygame.draw.rect(screen, "white", list_background)
 
-    for col1, col2, col3, col4 in zip(list_col_1, list_col_2, list_col_3, list_col_4):
-        # draw_button(list_btn)
-        pygame.draw.rect(screen, "skyblue1", col1)
-        pygame.draw.rect(screen, "skyblue1", col2)
-        pygame.draw.rect(screen, "skyblue1", col3)
-        pygame.draw.rect(screen, "skyblue1", col4)
+    for col in cols:
+        for b in col:
+            pygame.draw.rect(screen, "skyblue1", b)
 
     draw_dice()
 
-    for list_btn in list_buttons:
+    for list_btn in cols[0]:
         list_btn.hover = False
         if list_btn.rect.collidepoint(x, y):
             list_btn.hover = True
@@ -257,6 +310,7 @@ while running:
                     btn_roll_dice.disabled = True
 
             if btn_finish_turn.rect.collidepoint(x, y):
+                eval_points()
                 switch_player_flag = True
                 for d in dice_list:
                     d.reset()
